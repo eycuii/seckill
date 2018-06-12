@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ey.seckill.dao.IOrderDao">
+    <cache type="com.ey.seckill.cache.RedisCache"/>
+
+    <resultMap id="BaseResultMap" type="Order">
+        <result column="ID" property="id" javaType="int" jdbcType="NUMERIC"/>
+        <result column="VERSION" property="version" javaType="int" jdbcType="NUMERIC"/>
+        <result column="GOODS_ID" property="goodsId" javaType="int" jdbcType="NUMERIC"/>
+        <result column="COUNT" property="count" javaType="int" jdbcType="NUMERIC"/>
+        <result column="CREATE_TIME" property="createTime" javaType="Date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        T.ID, T.VERSION, T.GOODS_ID, T.COUNT, T.CREATE_TIME
+    </sql>
+
+    <insert id="add">
+        INSERT INTO
+            T_ORDER (
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            VERSION,
+            <if test="goodsId != null">
+                GOODS_ID,
+            </if>
+            <if test="count != null">
+                COUNT,
+            </if>
+            <if test="createTime != null">
+                CREATE_TIME,
+            </if>
+        </trim>
+        ) VALUES (
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            1,
+            <if test="goodsId != null">
+                #{goodsId, jdbcType=NVARCHAR},
+            </if>
+            <if test="count != null">
+                #{count, jdbcType=NUMERIC},
+            </if>
+            <if test="createTime != null">
+                #{createTime, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE
+            T_ORDER T
+        SET
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            T.VERSION = #{version, jdbcType=NUMERIC} + 1,
+            <if test="goodsId != null and goodsId &gt; 0">
+                T.GOODS_ID = #{goodsId, jdbcType=NVARCHAR},
+            </if>
+            <if test="count != null">
+                T.COUNT = #{count, jdbcType=NUMERIC},
+            </if>
+            <if test="createTime != null">
+                T.CREATE_TIME = #{createTime, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+        WHERE
+        T.ID = #{id, jdbcType=NUMERIC}
+    </update>
+
+    <select id="getById" resultMap="BaseResultMap" useCache="true">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM T_ORDER T
+        WHERE T.ID = #{id,jdbcType=NUMERIC}
+    </select>
+</mapper>

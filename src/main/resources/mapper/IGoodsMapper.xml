@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ey.seckill.dao.IGoodsDao">
+    <cache type="com.ey.seckill.cache.RedisCache"/>
+
+    <resultMap id="BaseResultMap" type="Goods">
+        <result column="ID" property="id" javaType="int" jdbcType="NUMERIC"/>
+        <result column="VERSION" property="version" javaType="int" jdbcType="NUMERIC"/>
+        <result column="NAME" property="name" javaType="String" jdbcType="NVARCHAR"/>
+        <result column="COUNT" property="count" javaType="int" jdbcType="NUMERIC"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        T.ID, T.VERSION, T.NAME, T.COUNT
+    </sql>
+
+    <insert id="add">
+        INSERT INTO
+            T_GOODS (
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            VERSION,
+            <if test="name != null">
+                NAME,
+            </if>
+            <if test="count != null">
+                COUNT,
+            </if>
+        </trim>
+        ) VALUES (
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            1,
+            <if test="name != null">
+                #{name, jdbcType=NVARCHAR},
+            </if>
+            <if test="count != null">
+                #{count, jdbcType=NUMERIC},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE
+            T_GOODS T
+        SET
+        <trim prefix="" prefixOverrides="" suffixOverrides=",">
+            T.VERSION = #{version, jdbcType=NUMERIC} + 1,
+            <if test="name != null">
+                T.NAME = #{name, jdbcType=NVARCHAR},
+            </if>
+            <if test="count != null">
+                T.COUNT = #{count, jdbcType=NUMERIC},
+            </if>
+        </trim>
+        WHERE
+        T.ID = #{id, jdbcType=NUMERIC}
+    </update>
+
+    <select id="getById" resultMap="BaseResultMap" useCache="true">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM T_GOODS T
+        WHERE T.ID = #{id,jdbcType=NUMERIC}
+    </select>
+</mapper>
