@@ -16,4 +16,14 @@ public class GoodsService implements IGoodsService {
     public Goods getById(int id) {
         return targetDao.getById(id);
     }
+
+    @Override
+    public int add(Goods goods) {
+        return targetDao.add(goods);
+    }
+
+    @Override
+    public int update(Goods goods) {
+        return targetDao.update(goods);
+    }
 }
