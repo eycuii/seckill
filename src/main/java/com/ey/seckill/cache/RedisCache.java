@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -75,7 +76,10 @@ public class RedisCache implements Cache {
     @Override
     public void clear() {
         redisTemplate.execute((RedisCallback) connection -> {
-            connection.flushDb();
+            Set<byte[]> s = connection.keys(("*" + id + "*").getBytes());
+            if (s.size() > 0) {
+                connection.del(s.toArray(new byte[0][]));
+            }
             return null;
         });
     }

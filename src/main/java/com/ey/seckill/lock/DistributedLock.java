@@ -1,7 +1,9 @@
 package com.ey.seckill.lock;
 
+import io.lettuce.core.RedisCommandInterruptedException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.RedisTemplate;
 
 public class DistributedLock {
 
@@ -13,23 +15,23 @@ public class DistributedLock {
             "else return 0 end").getBytes();
 
     private final RedisConnection connection;
-    private final byte[] expireMilliSeconds;
+    private final byte[] expire;
     private final byte[] threadId;
 
-    public DistributedLock(RedisConnection connection, int expireMilliSeconds) {
-        this.connection = connection;
-        this.expireMilliSeconds = (expireMilliSeconds + "").getBytes();
+    public DistributedLock(RedisTemplate redisTemplate, int expire) {
+        this.connection = redisTemplate.getConnectionFactory().getConnection();
+        this.expire = (expire + "").getBytes();
         this.threadId = (Thread.currentThread().getId() + "").getBytes();
     }
 
-    public boolean lock(String lockKey, int maxTryCount, int perWaitingMilliSeconds) {
+    public boolean lock(String lockKey, int maxTryCount, int perSleepMilliSeconds) {
         int tryCount = 0;
         while (tryCount++ <= maxTryCount) {
             if(tryLock(lockKey)) {
                 return true;
             }
             try {
-                Thread.sleep(perWaitingMilliSeconds);
+                Thread.sleep(perSleepMilliSeconds);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return false;
@@ -41,11 +43,28 @@ public class DistributedLock {
     public boolean tryLock(String lockKey) {
         return "OK".equals(
                 connection.execute("SET", lockKey.getBytes(), threadId,
-                        PX, expireMilliSeconds, NX));
+                        PX, expire, NX));
     }
 
-    public void unlock(String lockKey) {
-        connection.eval(DEL_SCRIPT, ReturnType.INTEGER, 2,
+    public boolean unlock(String lockKey) {
+        Long result = connection.eval(DEL_SCRIPT, ReturnType.INTEGER, 2,
                 lockKey.getBytes(), threadId);
+        return result == 1;
+    }
+
+    public Thread createDaemonThread(String lockKey, int start) {
+        Thread daemonTread = new Thread(() -> {
+            try {
+                while (!Thread.interrupted()) {
+                    Thread.sleep(start);
+                    connection.execute("SET", lockKey.getBytes(), threadId,
+                            PX, expire);
+                }
+            } catch (InterruptedException | RedisCommandInterruptedException e) {
+//                e.printStackTrace();
+            }
+        });
+        daemonTread.setDaemon(true);
+        return daemonTread;
     }
 }

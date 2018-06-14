@@ -56,7 +56,7 @@
         T.ID = #{id, jdbcType=NUMERIC}
     </update>
 
-    <select id="getById" resultMap="BaseResultMap" useCache="true">
+    <select id="getById" resultMap="BaseResultMap">
         SELECT
             <include refid="Base_Column_List" />
         FROM T_GOODS T
