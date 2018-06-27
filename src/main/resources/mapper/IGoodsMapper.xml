@@ -54,6 +54,7 @@
         </trim>
         WHERE
         T.ID = #{id, jdbcType=NUMERIC}
+        AND T.VERSION = #{version, jdbcType=NUMERIC}
     </update>
 
     <select id="getById" resultMap="BaseResultMap">

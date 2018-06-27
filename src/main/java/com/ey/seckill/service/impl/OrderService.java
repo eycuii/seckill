@@ -25,6 +25,13 @@ public class OrderService implements IOrderService {
 
     @Override
     public int order(int goodsId, int count) {
+        if(sellGoods(goodsId, count) == 0) {
+            throw new RuntimeException("商品更新失败！");
+        }
+        return createOrder(goodsId, count);
+    }
+
+    private int sellGoods(int goodsId, int count) {
         if (count <= 0) {
             throw new RuntimeException("交易数量必须大于零！");
         }
@@ -35,8 +42,10 @@ public class OrderService implements IOrderService {
                     + "库存不足！当前库存：" + goods.getCount());
         }
         goods.setCount(newCount);
-        goodsService.update(goods);
+        return goodsService.update(goods);
+    }
 
+    private int createOrder(int goodsId, int count) {
         Order order = new Order();
         order.setGoodsId(goodsId);
         order.setCount(count);

@@ -1,6 +1,7 @@
 package com.ey.seckill.controller;
 
-import com.ey.seckill.lock.RedisLock;
+import com.ey.seckill.lock.GoodsRedisLock;
+import com.ey.seckill.lock.base.RedisLock;
 import com.ey.seckill.service.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,11 +23,9 @@ public class OrderController {
     @RequestMapping(value = "", method = RequestMethod.POST)
     public int order(@RequestParam int goodsId, @RequestParam int count) {
         int result = 0;
-        String lockKey = "lock-goods-" + goodsId;
-        RedisLock lock = new RedisLock(redisTemplate, lockKey, 5000, 4000);
+        GoodsRedisLock lock = new GoodsRedisLock(redisTemplate, goodsId);
         try {
-            // TODO: 使用注解实现（如@TransactionalWithLock）
-            if (lock.lock(Integer.MAX_VALUE, 200)) {
+            if (lock.lock()) {
                 result = orderService.order(goodsId, count);
             }
         } catch (Exception e) {
