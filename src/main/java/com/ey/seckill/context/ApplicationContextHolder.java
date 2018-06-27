@@ -15,33 +15,14 @@ public class ApplicationContextHolder implements ApplicationContextAware {
         applicationContext = ctx;
     }
 
-    /**
-     * Get application context from everywhere
-     *
-     * @return
-     */
     public static ApplicationContext getApplicationContext() {
         return applicationContext;
     }
 
-    /**
-     * Get bean by class
-     *
-     * @param clazz
-     * @param <T>
-     * @return
-     */
     public static <T> T getBean(Class<T> clazz) {
         return applicationContext.getBean(clazz);
     }
 
-    /**
-     * Get bean by class name
-     *
-     * @param name
-     * @param <T>
-     * @return
-     */
     @SuppressWarnings("unchecked")
     public static <T> T getBean(String name) {
         return (T) applicationContext.getBean(name);

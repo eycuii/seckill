@@ -1,6 +1,6 @@
 package com.ey.seckill.controller;
 
-import com.ey.seckill.lock.DistributedLock;
+import com.ey.seckill.lock.RedisLock;
 import com.ey.seckill.service.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,22 +23,16 @@ public class OrderController {
     public int order(@RequestParam int goodsId, @RequestParam int count) {
         int result = 0;
         String lockKey = "lock-goods-" + goodsId;
-        DistributedLock lock = new DistributedLock(redisTemplate, 5000);
-        boolean acquire = false;
-        Thread daemonTread = lock.createDaemonThread(lockKey, 4000);
+        RedisLock lock = new RedisLock(redisTemplate, lockKey, 5000, 4000);
         try {
-            acquire = lock.lock(lockKey, Integer.MAX_VALUE, 200);
-            if (acquire) {
-                daemonTread.start();
+            // TODO: 使用注解实现（如@TransactionalWithLock）
+            if (lock.lock(Integer.MAX_VALUE, 200)) {
                 result = orderService.order(goodsId, count);
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            daemonTread.interrupt();
-            if(acquire) {
-                lock.unlock(lockKey);
-            }
+            lock.unlock();
         }
         return result;
     }

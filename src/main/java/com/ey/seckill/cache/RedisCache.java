@@ -32,12 +32,6 @@ public class RedisCache implements Cache {
         return id;
     }
 
-    /**
-     * Put query result to redis
-     *
-     * @param key
-     * @param value
-     */
     @Override
     @SuppressWarnings("unchecked")
     public void putObject(Object key, Object value) {
@@ -45,24 +39,12 @@ public class RedisCache implements Cache {
         opsForValue.set(key, value, EXPIRE_TIME_IN_MINUTES, TimeUnit.MINUTES);
     }
 
-    /**
-     * Get cached query result from redis
-     *
-     * @param key
-     * @return
-     */
     @Override
     public Object getObject(Object key) {
         ValueOperations opsForValue = redisTemplate.opsForValue();
         return opsForValue.get(key);
     }
 
-    /**
-     * Remove cached query result from redis
-     *
-     * @param key
-     * @return
-     */
     @Override
     @SuppressWarnings("unchecked")
     public Object removeObject(Object key) {
@@ -70,9 +52,6 @@ public class RedisCache implements Cache {
         return null;
     }
 
-    /**
-     * Clears this cache instance
-     */
     @Override
     public void clear() {
         redisTemplate.execute((RedisCallback) connection -> {
